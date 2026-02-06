@@ -1,1 +1,78 @@
 # Ansible playbook for web server configuration
+# deploy-app.yml
+---
+- name: Deploy Application to EC2 Instances
+  hosts: web_servers
+  become: yes
+  tasks:
+  
+    # Update the EC2 instance
+    - name: Update all packages
+      apt: 
+        update_cache: yes
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Update all packages (RedHat)
+      yum:
+        name: "*"
+        state: latest
+      when: ansible_os_family == "RedHat"
+
+    # Install dependencies (e.g., git, nodejs, npm)
+    - name: Install Git
+      apt: 
+        name: git
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Git (RedHat)
+      yum:
+        name: git
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Node.js
+      apt: 
+        name: nodejs
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Node.js (RedHat)
+      yum:
+        name: nodejs
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install npm
+      apt: 
+        name: npm
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install npm (RedHat)
+      yum:
+        name: npm
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    # Clone your Git repository
+    - name: Clone the repository
+      git:
+        repo: 'https://github.com/your-repo/your-app.git'
+        dest: /home/ec2-user/your-app
+        version: main  # or specify any branch you want
+      become: yes
+
+    # Install application dependencies (for example, Node.js app)
+    - name: Install app dependencies
+      npm:
+        path: /home/ec2-user/your-app
+        state: present
+
+    # Start the application
+    - name: Start the application
+      shell: |
+        cd /home/ec2-user/your-app
+        npm start
+      become: yes
